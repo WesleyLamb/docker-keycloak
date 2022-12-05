@@ -1,0 +1,48 @@
+version: '3.7'
+
+services:
+  db:
+    image: postgres:13.5
+    container_name: keycloak.db
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: yametekudasai
+      POSTGRES_DB: keycloak
+    ports:
+      - "5435:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+    networks:
+      - network
+  app:
+    image: quay.io/keycloak/keycloak:legacy
+    container_name: keycloak.app
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: db
+      DB_SCHEMA: public
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_PASSWORD: yametekudasai
+      KEYCLOAK_HOSTNAME: auth.sgbr.com.br
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+      KEYCLOAK_HTTPS_CERTIFICATE_FILE: /etc/ssl/certs/sgbr.crt
+      KEYCLOAK_HTTPS_CERTIFICATE_KEY_FILE: /etc/ssl/private/sgbr.key
+    ports:
+      - "8085:8080"
+      - "8445:8443"
+    volumes:
+      - /etc/ssl/certs/:/etc/ssl/certs/
+      - /etc/ssl/private/:/etc/ssl/private/
+    depends_on:
+      - db
+    networks:
+      - network
+volumes:
+  database:
+    driver: local
+networks:
+  network:
+    driver: bridge
